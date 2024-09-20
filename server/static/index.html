@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Anonymous Chat</title>
+  <!-- <link rel="stylesheet" href="/static/styles.css"> -->
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg, #3b82f6, #9333ea);
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0;
+}
+
+.chat-container {
+  width: 500px;
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.chat-title {
+  background-color: #3b82f6;
+  color: white;
+  text-align: center;
+  padding: 15px;
+  font-size: 24px;
+
+  /* Disable text selection */
+  -webkit-user-select: none; /* Safari */        
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* IE10+/Edge */
+  user-select: none; /* Standard */
+}
+
+.chat-box {
+  height: 400px;
+  padding: 15px;
+  background-color: #f9fafb;
+  overflow-y: auto;
+}
+
+.chat-input-container {
+  display: flex;
+  border-top: 1px solid #e5e7eb;
+}
+
+.chat-input {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 0;
+  resize: none;
+  font-size: 16px;
+}
+
+.send-button {
+  background-color: #39c71d;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  transition: background-color 0.3s;
+}
+
+.send-button:hover {
+  background-color: #12c42a;
+}
+
+.message {
+  margin-bottom: 10px;
+}
+
+.message-content {
+  background-color: #e5e7eb;
+  padding: 10px;
+  border-radius: 5px;
+  display: inline-block;
+}
+
+.message-time {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 3px;
+}
+    </style>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+          const wsUrl = `ws://${window.location.host}/live`;
+          const ws = new WebSocket(wsUrl);
+          const chatBox = document.getElementById("chat-box");
+          const messageInput = document.getElementById("message-input");
+          const sendButton = document.getElementById("send-button");
+
+          // Function to add a message to the chat box
+          function addMessage (content, createdAt) {
+            const messageDiv = document.createElement("div");
+            messageDiv.classList.add("message");
+
+            const messageContentDiv = document.createElement("div");
+            messageContentDiv.classList.add("message-content");
+            messageContentDiv.textContent = content;
+
+            const messageTimeDiv = document.createElement("div");
+            messageTimeDiv.classList.add("message-time");
+            messageTimeDiv.textContent = new Date(createdAt).toLocaleString();
+
+            messageDiv.appendChild(messageContentDiv);
+            messageDiv.appendChild(messageTimeDiv);
+            chatBox.appendChild(messageDiv);
+
+            // Scroll chat box to the bottom
+            chatBox.scrollTop = chatBox.scrollHeight;
+          }
+
+          // Listen for incoming WebSocket messages
+          ws.onmessage = function (event) {
+            const message = JSON.parse(event.data);
+            addMessage(message.content, message.created_at);
+          };
+
+          // Function to send message via WebSocket
+          function sendMessage () {
+            const content = messageInput.value.trim();
+            if (content === "") return;
+
+            const message = {
+              content: content,
+              created_at: new Date().toISOString(),
+            };
+
+            ws.send(JSON.stringify(message));
+            messageInput.value = "";
+          }
+
+          // Send button click event
+          sendButton.addEventListener("click", sendMessage);
+
+          // Ctrl+Enter sends the message
+          messageInput.addEventListener("keydown", function (e) {
+            if (e.ctrlKey && e.key === "Enter") {
+              sendMessage();
+            }
+          });
+
+          // On WebSocket connection open, display all previous messages
+          ws.onopen = function () {
+            console.log("Connected to WebSocket server.");
+          };
+
+          ws.onclose = function () {
+            console.log("Disconnected from WebSocket server.");
+          };
+        });
+    </script>
+</head>
+
+<body>
+  <div class="chat-container">
+    <h1 class="chat-title">Anon Chat 💬</h1>
+    <div id="chat-box" class="chat-box">
+      <!-- Messages will be appended here dynamically -->
+    </div>
+    <div class="chat-input-container">
+      <textarea id="message-input" class="chat-input" placeholder="Type your message... (^+⏎ to send)"></textarea>
+      <button id="send-button" class="send-button">Send</button>
+    </div>
+  </div>
+
+  <!-- <script src="/static/main.js"></script> -->
+</body>
+
+</html>
