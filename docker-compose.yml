@@ -1,0 +1,13 @@
+services:
+  anon-chat:
+    container_name: anon-chat-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - DATA_PATH=/app/data.json
+    volumes:
+      - ./data.json:/app/data.json

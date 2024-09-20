@@ -1,0 +1,41 @@
+version: '3'
+
+vars:
+  DOCKER_IMAGE: "dekuyo/anon-chat-app"
+  TAG: "latest"
+
+tasks:
+  # Task for running the Go application locally
+  run:
+    cmds:
+      - echo "Running the application with go run"
+      - go run main.go
+    desc: "Run the Go app locally using go run"
+  
+  # Task for building the Docker image
+  build:
+    cmds:
+      - echo "Building the Docker image"
+      - docker build -t {{.DOCKER_IMAGE}}:{{.TAG}} .
+    desc: "Build the Docker image for the application"
+
+  # Task for pushing the Docker image to a registry
+  push:
+    cmds:
+      - echo "Pushing the Docker image"
+      - docker push {{.DOCKER_IMAGE}}:{{.TAG}}
+    desc: "Push the Docker image to Docker Hub"
+    silent: true
+
+  # Task for running the Docker container locally
+  docker-run:
+    cmds:
+      - docker run -p 8080:8080 anon-chat-app:latest
+    desc: "Run the Docker image locally"
+
+  # Task for building, pushing, and running the Docker container
+  deploy:
+    cmds:
+      - task: build
+      - task: push
+    desc: "Build, push, and run the Docker container"
