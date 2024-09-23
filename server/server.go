@@ -2,10 +2,11 @@ package server
 
 import (
 	"context"
-	"embed"
+	_ "embed"
 	"encoding/json"
-	"io/fs"
 	"net/http"
+	"strings"
+	"time"
 
 	log "github.com/catalystgo/logger/cli"
 	"github.com/escalopa/anon-chat-app/domain"
@@ -24,7 +25,7 @@ type room interface {
 }
 
 //go:embed static/index.html
-var indexHTML embed.FS
+var indexHTML string
 
 type Handler struct {
 	httpServer *http.Server
@@ -75,8 +76,7 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	content, _ := fs.Sub(indexHTML, "static") // Load only the 'static' directory
-	http.FileServer(http.FS(content)).ServeHTTP(w, r)
+	http.ServeContent(w, r, "index.html", time.Now(), strings.NewReader(indexHTML))
 }
 
 var upgrader = websocket.Upgrader{
